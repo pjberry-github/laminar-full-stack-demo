@@ -6,6 +6,8 @@ import com.raquo.app.pages.ControlledInputsPage
 import com.raquo.laminar.api.L.{*, given}
 import org.scalajs.dom
 
+case class FakeRecord(id: String, string: String, double: Double)
+
 object UncontrolledInputsView {
 
   private val appStyles = List(
@@ -21,6 +23,9 @@ object UncontrolledInputsView {
         "."
       ),
       //
+      h2("0. Arbitrary Case Class"),
+      renderArbitraryCaseToUserInput(),
+
       h2("1. Listening to user input"),
       renderListeningToUserInput(),
       CodeSnippets(_.`uncontrolled/listening`),
@@ -68,6 +73,33 @@ object UncontrolledInputsView {
       )
     )
     // END[uncontrolled/listening]
+  }
+
+  private def renderArbitraryCaseToUserInput(): HtmlElement = {
+
+    val recordVar = Var(FakeRecord("888-999-000", "a string", 3.1415))
+
+    val idVar = recordVar.zoomLazy(_.id)((record, id) => record.copy(id = id))
+    div(
+      appStyles,
+      p(
+        label("Id: "),
+        input(
+          placeholder(recordVar.now().id),
+          onInput.mapToValue --> idVar
+        )
+      ),
+      p(
+        "Fake Record: ",
+        //stateVar.signal.map(_.toString)
+        text <-- recordVar.signal.map(_.toString)
+      )
+    )
+  }
+
+  private def constructFakeRecord(idVar: Var[String], stringVar: Var[String], doubleVar: Var[Double]) = {
+    val record = FakeRecord(idVar.now(), stringVar.now(), doubleVar.now())
+    Var(record)
   }
 
   private def renderTransformingUserInput(): HtmlElement = {
